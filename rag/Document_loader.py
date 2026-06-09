@@ -1,6 +1,6 @@
 import fitz
 
-def load_pdf(pdf_path):
+def load_document(pdf_path):
     text = ""
 
     doc = fitz.open(pdf_path)
@@ -9,4 +9,4 @@ def load_pdf(pdf_path):
         text += page.get_text()
 
     return text
-text= load_pdf("data/Brown_Eyes.pdf")
+text= load_document("data/Brown_Eyes.pdf")

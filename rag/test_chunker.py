@@ -1,7 +1,7 @@
-from pdf_loader import load_pdf
+from Document_loader import load_document
 from chunker import split_text
 
-text = load_pdf("data/Brown_Eyes.pdf")
+text = load_document("data/Brown_Eyes.pdf")
 
 chunks = split_text(text)
 

@@ -10,7 +10,9 @@ def retrieve(query, n_results=3):
         n_results=n_results
     )
 
-    print("\nDEBUG RESULTS:")
-    print(results)
+    # print("\nDEBUG RESULTS:")
+    # print(results)
 
-    return results["documents"][0]
+    context = "\n\n".join(results["documents"][0])
+    return context
+
