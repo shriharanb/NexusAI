@@ -1,7 +1,7 @@
 from vector_store import collection
 from embedder import get_embeddings
 
-def retrieve(query, n_results=3):
+def retrieve(query, n_results=10):
 
     query_embedding = get_embeddings([query])[0]
 
