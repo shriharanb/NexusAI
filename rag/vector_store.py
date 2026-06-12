@@ -4,6 +4,15 @@ client = chromadb.PersistentClient(
     path="vector_db"
 )
 
+# Wipe out the old "books" shelf completely
+try:
+    client.delete_collection(name="books")
+except:
+    pass  # Do nothing if it didn't exist yet
+
+# Create a fresh, empty "books" shelf
+collection = client.get_or_create_collection(name="books")
+
 collection = client.get_or_create_collection(
     name="books"
 )
