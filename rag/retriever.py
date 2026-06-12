@@ -1,18 +1,34 @@
+# rag/retriever.py
+
 from vector_store import collection
 from embedder import get_embeddings
 
-def retrieve(query, n_results=10):
 
-    query_embedding = get_embeddings([query])[0]
+def retrieve(
+    query,
+    n_results=5
+):
+
+    query_embedding = get_embeddings(
+        [query]
+    )[0]
 
     results = collection.query(
-        query_embeddings=[query_embedding.tolist()],
+        query_embeddings=[
+            query_embedding.tolist()
+        ],
         n_results=n_results
     )
 
-    # print("\nDEBUG RESULTS:")
-    # print(results)
+    return {
+        "context":
+        "\n\n".join(
+            results["documents"][0]
+        ),
 
-    context = "\n\n".join(results["documents"][0])
-    return context
+        "documents":
+        results["documents"][0],
 
+        "metadata":
+        results["metadatas"][0]
+    }

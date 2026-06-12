@@ -1,8 +1,15 @@
+# rag/embedder.py
+
 from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer(
-    "BAAI/bge-small-en-v1.5"
-)
+MODEL_NAME = "BAAI/bge-small-en-v1.5"
+
+model = SentenceTransformer(MODEL_NAME)
+
 
 def get_embeddings(texts):
-    return model.encode(texts)
+
+    return model.encode(
+        texts,
+        normalize_embeddings=True
+    )

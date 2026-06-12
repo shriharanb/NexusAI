@@ -1,12 +1,23 @@
+# rag/Document_loader.py
+
 import fitz
 
-def load_document(pdf_path):
+
+def load_document(file_path: str) -> str:
+
     text = ""
 
-    doc = fitz.open(pdf_path)
+    try:
+        doc = fitz.open(file_path)
 
-    for page in doc:
-        text += page.get_text()
+        for page in doc:
+            text += page.get_text()
 
-    return text
-text= load_document("data/Brown_Eyes.pdf")
+        doc.close()
+
+        return text
+
+    except Exception as e:
+        raise Exception(
+            f"Failed to load document: {e}"
+        )

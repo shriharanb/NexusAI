@@ -1,31 +1,38 @@
+# rag/vector_store.py
+
 import chromadb
 
 client = chromadb.PersistentClient(
     path="vector_db"
 )
 
-# Wipe out the old "books" shelf completely
-try:
-    client.delete_collection(name="books")
-except:
-    pass  # Do nothing if it didn't exist yet
-
-# Create a fresh, empty "books" shelf
-collection = client.get_or_create_collection(name="books")
-
 collection = client.get_or_create_collection(
-    name="books"
+    name="documents"
 )
 
 
-def store_chunks(chunks, embeddings):
+def store_chunks(
+    chunks,
+    embeddings,
+    source_file
+):
 
-    ids = [str(i) for i in range(len(chunks))]
+    ids = [
+        f"{source_file}_{i}"
+        for i in range(len(chunks))
+    ]
+
+    metadata = [
+        {
+            "source": source_file,
+            "chunk_id": i
+        }
+        for i in range(len(chunks))
+    ]
 
     collection.add(
         ids=ids,
         documents=chunks,
-        embeddings=embeddings.tolist()
+        embeddings=embeddings.tolist(),
+        metadatas=metadata
     )
-
-    print("Stored Successfully")
