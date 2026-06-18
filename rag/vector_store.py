@@ -1,9 +1,11 @@
 # rag/vector_store.py
 
 import chromadb
+from pathlib import Path
+DB_PATH= Path(__file__).resolve().parent.parent / "vector_db"
 
 client = chromadb.PersistentClient(
-    path="vector_db"
+    path= str(DB_PATH)
 )
 
 collection = client.get_or_create_collection(
@@ -29,6 +31,12 @@ def store_chunks(
         }
         for i in range(len(chunks))
     ]
+
+    # Remove old chunks if they already exist
+    try:
+        collection.delete(ids=ids)
+    except:
+        pass
 
     collection.add(
         ids=ids,
