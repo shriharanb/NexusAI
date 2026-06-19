@@ -6,7 +6,7 @@ from embedder import get_embeddings
 
 def retrieve(
     query,
-    n_results=5
+    n_results=5 #top 5 closest match
 ):
 
     query_embedding = get_embeddings(
@@ -17,7 +17,7 @@ def retrieve(
         query_embeddings=[
             query_embedding.tolist()
         ],
-        n_results=n_results
+        n_results=n_results 
     )
 
     return {
@@ -32,3 +32,5 @@ def retrieve(
         "metadata":
         results["metadatas"][0]
     }
+ans=retrieve("What is the real reason Stephen Griggs pretends to be Peter Reed in Brown Eyes?")
+print(ans)

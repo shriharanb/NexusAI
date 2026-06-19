@@ -41,6 +41,6 @@ def store_chunks(
     collection.add(
         ids=ids,
         documents=chunks,
-        embeddings=embeddings.tolist(),
+        embeddings=embeddings.tolist(), 
         metadatas=metadata
     )
