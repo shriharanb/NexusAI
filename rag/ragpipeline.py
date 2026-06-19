@@ -19,3 +19,4 @@ def ingest_document(file_path):
     )
 
     return len(chunks)
+ingest_document("data/Brown_Eyes.pdf")
