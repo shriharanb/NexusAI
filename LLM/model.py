@@ -6,8 +6,8 @@ print("Loading NEXUSAI...")
 
 llm = Llama(
     model_path=MODEL_PATH,
-    n_ctx=4096,
-    n_threads=4,
+    n_ctx=2048,
+    n_threads=2,
     verbose=False
 )
 
