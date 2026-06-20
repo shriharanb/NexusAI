@@ -1,23 +1,9 @@
-from Document_loader import load_document
-from chunker import split_text
-from embedder import get_embeddings
-from vector_store import store_chunks
-
-
-def ingest_document(file_path):
-
-    text = load_document(file_path)
-
-    chunks = split_text(text)
-
-    embeddings = get_embeddings(chunks)
-
-    store_chunks(
-        chunks,
-        embeddings,
-        file_path
-    )
-
+from RagEngine import rag_sys
+def ingest_document(docs):
+    Scraper=rag_sys()
+    text = Scraper.load_document(docs)
+    chunks = Scraper.split_text(text)
+    embeddings = Scraper.get_embeddings(chunks)
+    Scraper.store_chunks(chunks,embeddings,docs)
     return len(chunks)
-chunk=ingest_document("data/Brown_Eyes.pdf")
-print("Number of chunks", chunk)
+ans=ingest_document("data/Brown_Eyes.pdf")
