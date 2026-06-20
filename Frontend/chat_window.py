@@ -35,7 +35,7 @@ class ChatWindow(QMainWindow):
         brand_layout = QHBoxLayout()
         sidebar_logo = QLabel()
         sidebar_logo.setPixmap(qta.icon("fa5s.brain", color="#3b82f6").pixmap(24, 24))
-        brand_title = QLabel("NEXUS CORE")
+        brand_title = QLabel("NEXUSAI")
         brand_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #ffffff; letter-spacing: 1px;")
         brand_layout.addWidget(sidebar_logo)
         brand_layout.addWidget(brand_title)
@@ -43,11 +43,11 @@ class ChatWindow(QMainWindow):
         sidebar_layout.addLayout(brand_layout)
         
         # File Upload Section (RAG Context Ingestion)
-        rag_section_label = QLabel("DATA CONTEXT INGESTION")
+        rag_section_label = QLabel("Nexus Rag System")
         rag_section_label.setStyleSheet("font-size: 10px; font-weight: bold; color: #64748b; letter-spacing: 0.5px;")
         sidebar_layout.addWidget(rag_section_label)
         
-        self.upload_btn = QPushButton(" Ingest Document (RAG)")
+        self.upload_btn = QPushButton(" Ingest Document")
         self.upload_btn.setIcon(qta.icon("fa5s.file-upload", color="#ffffff"))
         self.upload_btn.setMinimumHeight(40)
         self.upload_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -64,7 +64,7 @@ class ChatWindow(QMainWindow):
         sidebar_layout.addWidget(self.uploaded_files_list)
         
         # Chat History Section
-        history_section_label = QLabel("CONVERSATION REPOS")
+        history_section_label = QLabel("Chat History")
         history_section_label.setStyleSheet("font-size: 10px; font-weight: bold; color: #64748b; letter-spacing: 0.5px;")
         sidebar_layout.addWidget(history_section_label)
         
@@ -94,7 +94,7 @@ class ChatWindow(QMainWindow):
         
         # Workspace Status Banner Top Bar
         top_bar = QHBoxLayout()
-        self.session_title = QLabel("Interactive Context Terminal")
+        self.session_title = QLabel("NEXUSAI")
         self.session_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #ffffff;")
         self.engine_badge = QLabel("Qwen-2.5-3B [Local]")
         self.engine_badge.setStyleSheet("background-color: #1e293b; color: #10b981; border: 1px solid #334155; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: bold;")

@@ -49,7 +49,7 @@ class LoginWindow(QMainWindow):
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         card_layout.addWidget(logo_label)
 
-        self.title_label = QLabel("NEXUS AI")
+        self.title_label = QLabel("NEXUSAI")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.title_label.setStyleSheet("font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: 3px;")
         card_layout.addWidget(self.title_label)
