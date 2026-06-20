@@ -18,6 +18,7 @@ def generate_answer(prompt):
     response = llm(
         prompt,
         max_tokens=256,
+        stop=["###", "\n\n"]
         temperature=0.3
     )
 
