@@ -23,7 +23,7 @@ class NexusAIApplication:
     def switch_to_chat_workspace(self, username: str):
         """Safely clean up authentication context and initialize workspace stream."""
         # Cleanly capture identity parsing formats
-        formatted_name = username.upper() if username == "shriharanb" else "SHRI HARAN B"
+        formatted_name = username.upper() if username == "shriharan" else "SHRI HARAN "
         
         # 3. Instantiate and present the primary operations panel
         self.chat_win = ChatWindow(username=formatted_name)

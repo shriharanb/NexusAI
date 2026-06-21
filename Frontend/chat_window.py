@@ -230,7 +230,7 @@ class ChatWindow(QMainWindow):
         self.scroll_area.verticalScrollBar().setValue(self.scroll_area.verticalScrollBar().maximum())
 
     def handle_send_message(self):
-        prompt = self.prompt_input.toPlainText().strip()
+        prompt = self.prompt_input.toPlainText().strip()#here prompt contains user question and NexusResponse contain model response. 
         if not prompt:
             return
             
