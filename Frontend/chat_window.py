@@ -3,8 +3,8 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QLabel, QLineEdit, QPushButton, 
                              QScrollArea, QFileDialog, QListWidget, QFrame, 
                              QSplitter, QTextEdit, QListWidgetItem)
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QFont, QTextCursor
+from PySide6.QtCore import Qt, QSize, QEvent
+from PySide6.QtGui import QFont, QTextCursor, QKeyEvent
 import qtawesome as qta
 
 
@@ -58,9 +58,8 @@ class ChatWindow(QMainWindow):
         # Dynamic uploaded document tracker list (Reduced Height)
         self.uploaded_files_list = QListWidget()
         self.uploaded_files_list.setObjectName("SidebarList")
-        self.uploaded_files_list.setFixedHeight(100)  # Constrained to maximize history viewing zone
+        self.uploaded_files_list.setFixedHeight(115)  # Slightly adjusted to host modular widget rows safely
         self.uploaded_files_list.setToolTip("No active document vectors loaded.")
-        self.uploaded_files_list.itemClicked.connect(self.handle_file_removal)
         sidebar_layout.addWidget(self.uploaded_files_list)
         
         # Chat History Section
@@ -72,19 +71,13 @@ class ChatWindow(QMainWindow):
         self.new_chat_btn.setIcon(qta.icon("fa5s.plus", color="#ffffff"))
         self.new_chat_btn.setMinimumHeight(40)
         self.new_chat_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.new_chat_btn.setObjectName("SidebarButton") # Unified accent coloring matching upload actions
+        self.new_chat_btn.setObjectName("SidebarButton")
         sidebar_layout.addWidget(self.new_chat_btn)
         
         # Expanded Chat History View Panel
         self.history_list = QListWidget()
         self.history_list.setObjectName("SidebarList")
-        self.history_list.addItems([
-            "Session 01: Architecture Overview", 
-            "Session 02: Model Diagnostic Logs",
-            "Session 03: Vector Index Tuning",
-            "Session 04: Production Verification Run"
-        ])
-        sidebar_layout.addWidget(self.history_list) # Takes remaining layout weight naturally
+        sidebar_layout.addWidget(self.history_list)
         
         # --- MAIN CHAT PANEL ---
         main_chat_area = QFrame()
@@ -92,15 +85,23 @@ class ChatWindow(QMainWindow):
         chat_layout = QVBoxLayout(main_chat_area)
         chat_layout.setContentsMargins(25, 20, 25, 20)
         
-        # Workspace Status Banner Top Bar
+        # --- WORKSPACE STATUS BANNER TOP BAR ---
         top_bar = QHBoxLayout()
+        
+        top_logo = QLabel()
+        top_logo.setPixmap(qta.icon("fa5s.brain", color="#3b82f6").pixmap(24, 24))
+        
         self.session_title = QLabel("NEXUSAI")
-        self.session_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #ffffff;")
-        self.engine_badge = QLabel("Qwen-2.5-3B [Local]")
-        self.engine_badge.setStyleSheet("background-color: #1e293b; color: #10b981; border: 1px solid #334155; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: bold;")
+        self.session_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #ffffff; letter-spacing: 1px;")
+        
+        top_bar.addWidget(top_logo)
         top_bar.addWidget(self.session_title)
         top_bar.addStretch()
+        
+        self.engine_badge = QLabel("Qwen-2.5-3B [LLM]")
+        self.engine_badge.setStyleSheet("background-color: #1e293b; color: #10b981; border: 1px solid #334155; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: bold;")
         top_bar.addWidget(self.engine_badge)
+        
         chat_layout.addLayout(top_bar)
         
         # Chat History Message Feed Stream Container
@@ -114,23 +115,41 @@ class ChatWindow(QMainWindow):
         self.feed_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.feed_layout.setSpacing(15)
         
-        # Gemini-style Central Welcome Label Overlay Frame
+        # --- GEMINI-STYLE CENTRAL WELCOME LABEL OVERLAY FRAME ---
         self.welcome_container = QFrame(self.scroll_content)
         self.welcome_container.setObjectName("WelcomeContainer")
+        
         welcome_layout = QVBoxLayout(self.welcome_container)
         welcome_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        welcome_layout.setContentsMargins(0, 120, 0, 0)
+        welcome_layout.setContentsMargins(0, 0, 0, 0)
+        welcome_layout.setSpacing(15)
+        
+        welcome_layout.addStretch(1)
+        
+        center_brand_layout = QHBoxLayout()
+        center_brand_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        center_brand_layout.setSpacing(16)
+        
+        center_logo = QLabel()
+        center_logo.setPixmap(qta.icon("fa5s.brain", color="#3b82f6").pixmap(48, 48))
+        center_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         self.welcome_brand = QLabel("NEXUSAI")
-        self.welcome_brand.setStyleSheet("font-size: 44px; font-weight: 800; color: #3b82f6; letter-spacing: 2px;")
+        self.welcome_brand.setStyleSheet("font-size: 44px; font-weight: 800; color: #ffffff; letter-spacing: 2px;")
         self.welcome_brand.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        self.welcome_subtitle = QLabel(f"Hii {self.username}")
+        center_brand_layout.addWidget(center_logo, alignment=Qt.AlignmentFlag.AlignVCenter)
+        center_brand_layout.addWidget(self.welcome_brand, alignment=Qt.AlignmentFlag.AlignVCenter)
+        
+        self.welcome_subtitle = QLabel(f"Hello {self.username}")
         self.welcome_subtitle.setStyleSheet("font-size: 28px; font-weight: 600; color: #475569;")
         self.welcome_subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        welcome_layout.addWidget(self.welcome_brand)
+        welcome_layout.addLayout(center_brand_layout)
         welcome_layout.addWidget(self.welcome_subtitle)
+        
+        welcome_layout.addStretch(1)
+        
         self.feed_layout.addWidget(self.welcome_container)
         
         self.scroll_area.setWidget(self.scroll_content)
@@ -138,53 +157,59 @@ class ChatWindow(QMainWindow):
         
         # --- GEMINI-STYLE COMPACT FOOTER INPUT TRAY ---
         gemini_input_bar = QFrame()
-        gemini_input_bar.setObjectName("GeminiInputTray")
+        gemini_input_bar.setObjectName("NexusInputTray")
         gemini_layout = QHBoxLayout(gemini_input_bar)
         gemini_layout.setContentsMargins(14, 4, 8, 4)
         gemini_layout.setSpacing(10)
         
         self.prompt_input = QTextEdit()
         self.prompt_input.setPlaceholderText("Ask NexusAI...")
-        self.prompt_input.setMinimumHeight(40)
-        self.prompt_input.setMaximumHeight(40)  # Stripped down layout tracking height
-        self.prompt_input.setObjectName("GeminiPromptInput")
+        self.prompt_input.setMinimumHeight(60)
+        self.prompt_input.setMaximumHeight(60)
+        self.prompt_input.setObjectName("NexusPromptInput")
+        
+        self.prompt_input.installEventFilter(self)
         
         self.send_btn = QPushButton()
         self.send_btn.setIcon(qta.icon("fa5s.paper-plane", color="#ffffff"))
-        self.send_btn.setFixedSize(32, 32)  # Tiny, sharp action button
+        self.send_btn.setFixedSize(32, 32)
         self.send_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.send_btn.setObjectName("GeminiSendButton")
+        self.send_btn.setObjectName("NexusSendButton")
         self.send_btn.clicked.connect(self.handle_send_message)
         
         gemini_layout.addWidget(self.prompt_input)
         gemini_layout.addWidget(self.send_btn)
         
-        # Center the compact input bar cleanly at the bottom
         input_alignment_wrapper = QHBoxLayout()
         input_alignment_wrapper.addStretch(1)
-        input_alignment_wrapper.addWidget(gemini_input_bar, 4)  # Constraints width sprawl
+        input_alignment_wrapper.addWidget(gemini_input_bar, 4)
         input_alignment_wrapper.addStretch(1)
         chat_layout.addLayout(input_alignment_wrapper)
         
-        # Add layouts to main horizontal splitter engine
         main_splitter.addWidget(sidebar)
         main_splitter.addWidget(main_chat_area)
-        main_splitter.setSizes([260, 740])
+        main_splitter.setSizes([260, 1040])
         
         layout = QVBoxLayout(central_widget)
         layout.addWidget(main_splitter)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        # Flag to monitor conversational state changes
         self.is_first_message = True
 
+    def eventFilter(self, obj, event):
+        if obj is self.prompt_input and event.type() == QEvent.Type.KeyPress:
+            key_event = QKeyEvent(event)
+            if key_event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter) and not (key_event.modifiers() & Qt.KeyboardModifier.ShiftModifier):
+                self.handle_send_message()
+                return True
+        return super().eventFilter(obj, event)
+
     def append_message(self, text, is_user=True):
-        """Generates dynamic chat bubble interface objects injected down into the viewport layout stream"""
         bubble_frame = QFrame()
         bubble_layout = QVBoxLayout(bubble_frame)
         bubble_layout.setContentsMargins(15, 12, 15, 12)
         
-        sender_title = QLabel("YOU" if is_user else "NEXUS AI")
+        sender_title = QLabel("YOU" if is_user else "NEXUSAI")
         sender_title.setStyleSheet(f"font-size: 10px; font-weight: 800; color: {'#3b82f6' if is_user else '#10b981'};")
         
         message_body = QLabel(text)
@@ -196,9 +221,9 @@ class ChatWindow(QMainWindow):
         bubble_layout.addWidget(message_body)
         
         if is_user:
-            bubble_frame.setStyleSheet("background-color: #1e293b; border: 1px solid #334155; border-radius: 8px;")
+            bubble_frame.setStyleSheet("background-color: #1e293b; border: 0px solid #334155; border-radius: 8px;")
         else:
-            bubble_frame.setStyleSheet("background-color: #0f172a; border: 1px solid #1e293b; border-radius: 8px;")
+            bubble_frame.setStyleSheet("background-color: #0f172a; border: 0px solid #1e293b; border-radius: 8px;")
             
         self.feed_layout.addWidget(bubble_frame)
         self.scroll_area.verticalScrollBar().setValue(self.scroll_area.verticalScrollBar().maximum())
@@ -208,7 +233,6 @@ class ChatWindow(QMainWindow):
         if not prompt:
             return
             
-        # Clear welcome elements immediately on initial query interaction
         if self.is_first_message:
             self.welcome_container.hide()
             self.welcome_container.deleteLater()
@@ -217,7 +241,6 @@ class ChatWindow(QMainWindow):
         self.append_message(prompt, is_user=True)
         self.prompt_input.clear()
         
-        # Local model verification loop response
         self.append_message(f"Processed request token receipt loop. Ready to map to Qwen logic.", is_user=False)
 
     def handle_file_upload(self):
@@ -226,12 +249,46 @@ class ChatWindow(QMainWindow):
         )
         if file_path:
             file_name = file_path.split("/")[-1]
-            # Formats item content cleanly with a trailing removal trigger label
-            self.uploaded_files_list.addItem(f"📄 {file_name}   [X]")
+            
+            # 1. Create container widget & row structure layout
+            row_widget = QWidget()
+            row_layout = QHBoxLayout(row_widget)
+            row_layout.setContentsMargins(6, 2, 6, 2)
+            row_layout.setSpacing(8)
+            
+            # 2. Document name label (with file clip icon)
+            doc_label = QLabel(f"📄 {file_name}")
+            doc_label.setStyleSheet("color: #cbd5e1; font-size: 12px; background: transparent; border: none;")
+            doc_label.setToolTip(file_name)
+            
+            # 3. Premium standalone close button configuration
+            remove_btn = QPushButton()
+            remove_btn.setFixedSize(20, 20)
+            remove_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            remove_btn.setObjectName("DocumentRemoveButton")
+            remove_btn.setIcon(qta.icon("fa5s.times", color="#94a3b8"))
+            remove_btn.setIconSize(QSize(10, 10))
+            
+            # Assemble widgets into the row layout
+            row_layout.addWidget(doc_label, 1)
+            row_layout.addWidget(remove_btn, 0)
+            
+            # 4. Bind row entry to an standard invisible QListWidgetItem tracker inside the collection
+            list_item = QListWidgetItem(self.uploaded_files_list)
+            list_item.setSizeHint(QSize(0, 32)) 
+            
+            # Inject dynamic custom widget structure directly into row target index slot
+            self.uploaded_files_list.setItemWidget(list_item, row_widget)
+            
+            # Connect explicit dynamic mapping using lambda tracking exact reference handle instance safely
+            remove_btn.clicked.connect(lambda: self.handle_custom_widget_removal(list_item))
 
-    def handle_file_removal(self, item):
-        """Allows direct vector removal actions by clicking an active element string row"""
-        self.uploaded_files_list.takeItem(self.uploaded_files_list.row(item))
+    def handle_custom_widget_removal(self, item):
+        """Cleanly unmaps and purges compound row elements from the document view frame"""
+        if item:
+            row_idx = self.uploaded_files_list.row(item)
+            if row_idx >= 0:
+                self.uploaded_files_list.takeItem(row_idx)
 
 
 # Workspace Native CSS Custom Theme Engine
@@ -254,15 +311,28 @@ CHAT_STYLING = """
         padding: 5px;
     }
     QListWidget#SidebarList::item {
-        padding: 8px;
+        padding: 4px;
         color: #cbd5e1;
         border-bottom: 1px solid #1e293b;
     }
     QListWidget#SidebarList::item:hover {
-        background-color: #1e293b;
-        border-radius: 4px;
-        color: #ef4444; /* Highlights color shifts to indicate deletion capability on file clicks */
+        background-color: transparent;
     }
+    
+    /* Document Row Close Button Styling Architecture */
+    QPushButton#DocumentRemoveButton {
+        background-color: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 10px;
+    }
+    QPushButton#DocumentRemoveButton:hover {
+        background-color: #ef4444;
+        border: 1px solid #f87171;
+    }
+    QPushButton#DocumentRemoveButton:hover QIcon {
+        color: #ffffff;
+    }
+
     QPushButton#SidebarButton {
         background-color: #2563eb;
         color: white;
@@ -280,26 +350,26 @@ CHAT_STYLING = """
         background-color: transparent;
     }
     
-    /* Gemini Input Pill Architecture */
-    QFrame#GeminiInputTray {
+    QFrame#NexusInputTray {
         background-color: #0f172a;
         border: 1px solid #334155;
         border-radius: 22px;
         max-width: 650px;
+        max-height: 100px;
     }
-    QTextEdit#GeminiPromptInput {
+    QTextEdit#NexusPromptInput {
         background-color: transparent;
         color: #f8fafc;
         border: none;
         font-size: 14px;
-        padding-top: 8px;
+        padding-top: 18px;
     }
-    QPushButton#GeminiSendButton {
+    QPushButton#NexusSendButton {
         background-color: #2563eb;
         border: none;
         border-radius: 16px;
     }
-    QPushButton#GeminiSendButton:hover { 
+    QPushButton#NexusSendButton:hover { 
         background-color: #3b82f6; 
     }
     
@@ -326,6 +396,6 @@ if __name__ == "__main__":
     font = QFont("Sans-Serif", 10)
     app.setFont(font)
     
-    window = ChatWindow("shri")
+    window = ChatWindow("SHRI HARAN")
     window.show()
     sys.exit(app.exec())

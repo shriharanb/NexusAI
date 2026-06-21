@@ -44,8 +44,8 @@ class LoginWindow(QMainWindow):
 
         # 2. Header / Branding
         logo_label = QLabel()
-        # Glowing terminal icon for NexusAI
-        logo_label.setPixmap(qta.icon("fa5s.terminal", color="#3b82f6").pixmap(48, 48))
+        # Updated to the glowing brain icon for NexusAI consistency
+        logo_label.setPixmap(qta.icon("fa5s.brain", color="#3b82f6").pixmap(48, 48))
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         card_layout.addWidget(logo_label)
 
@@ -212,11 +212,11 @@ class LoginWindow(QMainWindow):
 
         # Core Check
         if username == "shriharanb" and password == "admin@666666":
-            self.show_custom_alert("Access Authorized", f"Identity Decrypted. Welcome back, Master SHRI HARAN B.", is_error=False)
+            self.show_custom_alert("Access Authorized", f"Welcome back, Master SHRI HARAN B.", is_error=False)
             self.login_successful.emit(username)
             self.close()
         else:
-            self.show_custom_alert("Access Denied", "Signature Mismatch. Cryptographic authentication failed.", is_error=True)
+            self.show_custom_alert("Access Denied", "Signature Mismatch. Authentication failed, Your not my master.", is_error=True)
             self.password_input.clear()
             self.password_input.setFocus()
 
