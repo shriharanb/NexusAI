@@ -6,5 +6,5 @@ def ingest_document(docs):
     embeddings = Scraper.get_embeddings(chunks)
     Scraper.store_chunks(chunks,embeddings,docs)
     return len(chunks)
-ans=ingest_document("data/Brown_Eyes.pdf")
+
 
