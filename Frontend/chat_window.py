@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PySide6.QtCore import Qt, QSize, QEvent
 from PySide6.QtGui import QFont, QTextCursor, QKeyEvent
 import qtawesome as qta
+from Chat.NexusChat import NexusAI
 
 
 class ChatWindow(QMainWindow):
@@ -239,13 +240,13 @@ class ChatWindow(QMainWindow):
             self.is_first_message = False
             
         self.append_message(prompt, is_user=True)
-        self.prompt_input.clear()
+        NexusResponse= NexusAI(prompt) #User prompt send it to nexus chat file
         
-        self.append_message(f"Processed request token receipt loop. Ready to map to Qwen logic.", is_user=False)
+        self.append_message(f"{NexusResponse}", is_user=False) #Receives Nexus response
 
     def handle_file_upload(self):
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "Select Knowledge Base Document", "", "Documents (*.pdf *.txt *.md *.csv)"
+            self, "Select Your Document", "", "Documents (*.pdf *.txt *.md)"
         )
         if file_path:
             file_name = file_path.split("/")[-1]

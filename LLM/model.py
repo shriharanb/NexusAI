@@ -2,7 +2,7 @@ from llama_cpp import Llama
 
 MODEL_PATH = "models/Qwen2.5-3B-Instruct-Q4_K_M.gguf"
 
-print("Loading NEXUSAI...")
+#print("Loading NEXUSAI...")
 
 llm = Llama(
     model_path=MODEL_PATH,
@@ -11,7 +11,7 @@ llm = Llama(
     verbose=False
 )
 
-print("Model loaded successfully!")
+#print("Model loaded successfully!")
 
 
 def generate_answer(prompt):
