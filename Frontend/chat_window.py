@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QLabel, QLineEdit, QPushButton, 
                              QScrollArea, QFileDialog, QListWidget, QFrame, 
                              QSplitter, QTextEdit, QListWidgetItem)
-from PySide6.QtCore import Qt, QSize, QEvent
+from PySide6.QtCore import Qt, QSize, QEvent, Signal
 from PySide6.QtGui import QFont, QTextCursor, QKeyEvent
 import qtawesome as qta
 
@@ -13,8 +13,14 @@ import qtawesome as qta
 from Chat.NexusChat import NexusAI
 from rag.NexusDB import save_chat_turn, DB_PATH  
 
+# Import the RAG control functions
+from rag.ragpipeline import ingest_document, delete_document
+
 
 class ChatWindow(QMainWindow):
+    # Signal to notify main application instance to swap back to the login interface
+    logout_requested = Signal()
+
     def __init__(self, username="Master"):
         super().__init__()
         self.username = username
@@ -29,7 +35,7 @@ class ChatWindow(QMainWindow):
         
         self.init_ui()
         
-        # 🎯 Automatically restore historical records into the sidebar layout on startup
+        # 💬 Automatically restore historical records into the sidebar layout on startup
         self.load_past_sessions_from_db()
 
     def init_ui(self):
@@ -116,10 +122,24 @@ class ChatWindow(QMainWindow):
         top_bar.addWidget(self.session_title)
         top_bar.addStretch()
         
-        self.engine_badge = QLabel("Qwen-2.5-3B [LLM]")
-        self.engine_badge.setStyleSheet("background-color: #1e293b; color: #10b981; border: 1px solid #334155; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: bold;")
-        top_bar.addWidget(self.engine_badge)
+        # Status Control Container (Stacked Engine Badge and Logout Button)
+        status_control_layout = QVBoxLayout()
+        status_control_layout.setSpacing(6)
         
+        self.engine_badge = QLabel("Qwen-2.5-3B [LLM]")
+        self.engine_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.engine_badge.setStyleSheet("background-color: #1e293b; color: #10b981; border: 1px solid #334155; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: bold;")
+        
+        self.logout_btn = QPushButton(" Logout")
+        self.logout_btn.setIcon(qta.icon("fa5s.sign-out-alt", color="#ffffff"))
+        self.logout_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.logout_btn.setObjectName("LogoutButton")
+        self.logout_btn.clicked.connect(self.handle_logout)
+        
+        status_control_layout.addWidget(self.engine_badge)
+        status_control_layout.addWidget(self.logout_btn)
+        
+        top_bar.addLayout(status_control_layout)
         chat_layout.addLayout(top_bar)
         
         # Chat History Message Feed Stream Container
@@ -215,7 +235,7 @@ class ChatWindow(QMainWindow):
         self.is_first_message = True
 
     def load_past_sessions_from_db(self):
-        """🎯 Reads older logged sessions out of SQLite on startup and renders them inside the sidebar panel layout."""
+        """💬 Reads older logged sessions out of SQLite on startup and renders them inside the sidebar panel layout."""
         try:
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
@@ -453,6 +473,13 @@ class ChatWindow(QMainWindow):
         if file_path:
             file_name = file_path.split("/")[-1]
             
+            # 1️⃣ Trigger document pipeline with the exact full path argument
+            try:
+                chunks_count = ingest_document(file_path)
+                print(f"[RAG Ingest] Successfully stored {chunks_count} chunks from {file_name}")
+            except Exception as e:
+                print(f"[RAG Ingest Error] Ingestion failed: {e}")
+            
             row_widget = QWidget()
             row_layout = QHBoxLayout(row_widget)
             row_layout.setContentsMargins(6, 2, 6, 2)
@@ -460,7 +487,7 @@ class ChatWindow(QMainWindow):
             
             doc_label = QLabel(f"📄 {file_name}")
             doc_label.setStyleSheet("color: #cbd5e1; font-size: 12px; background: transparent; border: none;")
-            doc_label.setToolTip(file_name)
+            doc_label.setToolTip(file_path)
             
             remove_btn = QPushButton()
             remove_btn.setFixedSize(20, 20)
@@ -475,14 +502,31 @@ class ChatWindow(QMainWindow):
             list_item = QListWidgetItem(self.uploaded_files_list)
             list_item.setSizeHint(QSize(0, 32)) 
             
+            # 📌 Store the full file path inside the item data so it can be used for deletion later
+            list_item.setData(Qt.ItemDataRole.UserRole, file_path)
+            
             self.uploaded_files_list.setItemWidget(list_item, row_widget)
             remove_btn.clicked.connect(lambda: self.handle_custom_widget_removal(list_item))
 
     def handle_custom_widget_removal(self, item):
         if item:
+            # 2️⃣ Retrieve full file path identity from item data
+            file_path = item.data(Qt.ItemDataRole.UserRole)
+            if file_path:
+                try:
+                    # Wipe vectors, embeddings, metadata, and contents from ChromaDB
+                    delete_document(file_path)
+                    print(f"[RAG Delete] Cleanly purged all vector records for: {file_path}")
+                except Exception as e:
+                    print(f"[RAG Delete Error] Failed to purge vector database entries: {e}")
+            
             row_idx = self.uploaded_files_list.row(item)
             if row_idx >= 0:
                 self.uploaded_files_list.takeItem(row_idx)
+
+    def handle_logout(self):
+        """Emits the logout request signal to safely clean workspace window view frames."""
+        self.logout_requested.emit()
 
 
 # Workspace Native CSS Custom Theme Engine
@@ -522,6 +566,21 @@ CHAT_STYLING = """
         border-radius: 6px;
     }
     QPushButton#SidebarButton:hover { background-color: #3b82f6; }
+
+    QPushButton#LogoutButton {
+        background-color: #1e293b;
+        color: #ef4444;
+        font-size: 11px;
+        font-weight: bold;
+        border: 1px solid #334155;
+        border-radius: 4px;
+        padding: 3px 8px;
+    }
+    QPushButton#LogoutButton:hover {
+        background-color: #ef4444;
+        color: #ffffff;
+        border: 1px solid #f87171;
+    }
 
     QScrollArea#ChatScrollArea { border: none; background-color: transparent; }
     QWidget#ChatScrollContent { background-color: transparent; }
