@@ -18,8 +18,9 @@ def generate_answer(prompt):
     response = llm(
         prompt,
         max_tokens=256,
-        stop=["###", "\n\n"],
-        temperature=0.3
+        stop=["###", "<|im_end|>", "<|im_start|>", "user:", "assistant:"],
+        temperature=0.4,       # Slightly increased from 0.3 for better conversational flow
+        repeat_penalty=1.1     # Prevents phrase repeating loops entirely
     )
 
     return response["choices"][0]["text"].strip()

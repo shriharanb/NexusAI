@@ -9,13 +9,17 @@ from LLM.model import generate_answer
 
 def NexusAI(user_query: str) -> str:
     question = user_query
-    q_lower = question.lower()
+    q_lower = question.lower().strip()
 
-    # Check for direct identity/persona overrides first
+    # 1. Check for direct identity/persona overrides first
     if "your name" in q_lower or "who are you" in q_lower or "your master" in q_lower or "who is your master" in q_lower:
         return "My name is NexusAI, and my master is SHRI HARAN B."
 
-    # Otherwise, fall back to RAG retrieval pipeline blocks safely
+    # 🌟 2. Handle basic friendly greetings instantly for responsive feedback
+    elif q_lower in ["hi", "hii", "hello", "hey", "good afternoon", "good morning", "good evening"]:
+        return "Good Afternoon! How can I assist you today?"
+
+    # 3. Otherwise, fall back to RAG retrieval pipeline blocks safely
     else:
         result = retrieve(question)
         context = result.get("context", "")

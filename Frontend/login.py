@@ -44,7 +44,6 @@ class LoginWindow(QMainWindow):
 
         # 2. Header / Branding
         logo_label = QLabel()
-        # Updated to the glowing brain icon for NexusAI consistency
         logo_label.setPixmap(qta.icon("fa5s.brain", color="#3b82f6").pixmap(48, 48))
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         card_layout.addWidget(logo_label)
@@ -196,7 +195,6 @@ class LoginWindow(QMainWindow):
         username = self.username_input.text().strip()
         password = self.password_input.text()
 
-        # Extraordinary Validation Alerts
         if not username and not password:
             self.show_custom_alert("Input Missing", "Security protocols require both Username and Password fields to be populated.", is_error=True)
             self.username_input.setFocus()
@@ -210,11 +208,10 @@ class LoginWindow(QMainWindow):
             self.password_input.setFocus()
             return
 
-        # Core Check
         if username == "shriharanb" and password == "admin@666666":
             self.show_custom_alert("Access Authorized", f"Welcome back, Master SHRI HARAN B.", is_error=False)
             self.login_successful.emit(username)
-            self.close()
+            # Remove self.close() so the core application lifecycle can manage hiding/showing this window seamlessly.
         else:
             self.show_custom_alert("Access Denied", "Signature Mismatch. Authentication failed, Your not my master.", is_error=True)
             self.password_input.clear()

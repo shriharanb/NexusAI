@@ -28,9 +28,26 @@ class NexusAIApplication:
         # 3. Instantiate and present the primary operations panel
         self.chat_win = ChatWindow(username=formatted_name)
         
+        # Connect the logout signal to our custom redirection method
+        self.chat_win.logout_requested.connect(self.switch_to_login_screen)
+        
         # Re-apply styling directly to the workstation framework object
         self.chat_win.setStyleSheet(STYLING_SHEET + "\n" + CHAT_STYLING)
         self.chat_win.show()
+        
+        # Hide the login screen instead of keeping it open
+        self.login_win.hide()
+
+    def switch_to_login_screen(self):
+        """Safely tears down the active workspace and recovers the login frame."""
+        if hasattr(self, 'chat_win') and self.chat_win:
+            self.chat_win.hide()
+            self.chat_win.deleteLater() # Cleanly dump workspace allocations
+            
+        # Re-clear login fields for fresh security input session
+        self.login_win.username_input.clear()
+        self.login_win.password_input.clear()
+        self.login_win.show()
 
 
 if __name__ == "__main__":
