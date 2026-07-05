@@ -17,7 +17,7 @@ def NexusAI(user_query: str) -> str:
 
     # 🌟 2. Handle basic friendly greetings instantly for responsive feedback
     elif q_lower in ["hi", "hii", "hello", "hey", "good afternoon", "good morning", "good evening"]:
-        return "Good Afternoon! How can I assist you today?"
+        return "Hii Master! How can I assist you today?"
 
     # 3. Otherwise, fall back to RAG retrieval pipeline blocks safely
     else:
